@@ -1,65 +1,22 @@
-import os, sys, shutil, json
+import os, sys, shutil, json, pickle
 from typing import Optional, Dict, List
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog
 from PyQt5.QtCore import Qt, QDir, QFile, QUrl, QSize
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor, QStandardItemModel, QStandardItem
 
 from credential_widget import CredentialWidget
+from credential_list import CredentialList, CredentialItem
 
-class StandardItem(QStandardItem):
-    def __init__(self, txt='', font_size=12, set_bold=False, color=QColor(0, 0, 0)):
-        super(StandardItem, self).__init__()
-        font_style = QFont('Open Sans', font_size)
-        font_style.setBold(set_bold)
+class ErrorMessage(QMessageBox):
+    def __init__(self, parent: QWidget = None, error_title: str = "", error_text: str = "", error_description: str = "") -> None:
+        super(ErrorMessage, self).__init__(parent)
 
-        self.setEditable(False)
-        self.setForeground(color)
-        self.setFont(font_style)
-        self.setText(txt)
-
-class CredentialList(QTreeView):
-    def __init__(self):
-        super(CredentialList, self).__init__()
-
-        self.setHeaderHidden(True)
-
-        self.model_obj = QStandardItemModel()
-        self.canvas = self.model_obj.invisibleRootItem()
-        self.setModel(self.model_obj)
-
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.openMenu)
-
-        self.clicked.connect(self.clicked_function)
-        self.doubleClicked.connect(self.double_clicked_function)
-
-    def clicked_function(self, val):
-        print("clicked " + val.data())
-
-    def double_clicked_function(self, val):
-        print("double clicked", val.data())
-
-    def openMenu(self, position):
-    
-        indexes = self.selectedIndexes()
-        if len(indexes) > 0:
-        
-            level = 0
-            index = indexes[0]
-            while index.parent().isValid():
-                index = index.parent()
-                level += 1
-        
-        menu = QMenu()
-        if level == 0:
-            menu.addAction(self.tr("Edit 1"))
-        elif level == 1:
-            menu.addAction(self.tr("Edit 2"))
-        elif level == 2:
-            menu.addAction(self.tr("Edit 3"))
-        
-        menu.exec_(self.viewport().mapToGlobal(position))
+        self.setIcon(QMessageBox.Critical)
+        self.setWindowTitle("Error " + error_title)
+        self.setText(error_text)
+        self.setInformativeText(error_description)
+        self.exec_()
 
 
 class Main(QMainWindow):
@@ -67,6 +24,8 @@ class Main(QMainWindow):
         super(Main, self).__init__(parent)
 
         self.build()
+        self.load_config()
+        self.load_creds()
 
     def build(self) -> None:
         self.setWindowTitle("Credential Manager")
@@ -83,14 +42,7 @@ class Main(QMainWindow):
         self.selection_layoutV = QVBoxLayout()
         self.main_layoutH.addLayout(self.selection_layoutV)
 
-        self.cred_list = CredentialList()
-
-        # ----
-        test = StandardItem("test", 12, False, QColor(0, 0, 0))
-        test1 = StandardItem("test1", 12, False, QColor(0, 0, 0))
-        test.appendRow(test1)
-        self.cred_list.canvas.appendRow(test)
-        # ----
+        self.cred_list = CredentialList(self)
 
         self.selection_layoutV.addWidget(self.cred_list)
 
@@ -115,6 +67,49 @@ class Main(QMainWindow):
         self.action_widget = CredentialWidget()
         self.action_widget.setHidden(True)
         self.action_layoutV.addWidget(self.action_widget)
+
+    def load_config(self):
+        home_dir = os.path.expanduser('~')
+        mgr_dir = os.path.join(home_dir, ".cred_mgr")
+        os.makedirs(mgr_dir) if not os.path.exists(mgr_dir) else ...
+        config_file = os.path.join(mgr_dir, "config.dat")
+        self.config_dict = {
+            "font_size": 10,
+            "folder_color": (255, 0, 0),
+            "credential_color": (0, 255, 0),
+            "password_length": 16,
+            "only_digits": False,
+            "include_special_characters": True
+        }
+        # color = QColorDialog.getColor()
+        # if color.isValid():
+        #     print("Выбранный цвет:", color.getRgb())
+        try:
+            with open(file=config_file, mode="rb") as config:
+                self.config_dict = pickle.load(config)
+        except FileNotFoundError:
+            with open(file=config_file, mode="xb") as config:
+                pickle.dump(self.config_dict, config, protocol = 5)
+        except EOFError:
+            ErrorMessage(self, "file corrupted", "Can't read file. File would be replaced by new file.")
+            os.remove(config_file)
+            with open(file=config_file, mode="xb") as config:
+                pickle.dump(self.config_dict, config, protocol = 2)
+        except pickle.UnpicklingError:
+            ErrorMessage(self, "file corrupted", "Can't read file. File would be replaced by new file.")
+            os.remove(config_file)
+            with open(file=config_file, mode="xb") as config:
+                pickle.dump(self.config_dict, config, protocol = 2)
+        font = self.font()
+        font.setPointSize(10)
+        QApplication.instance().setFont(font)
+
+    def load_creds(self):
+        test_folder = CredentialItem("Folder", 12, False, QColor(*self.config_dict["folder_color"]))
+        self.cred_list.canvas.appendRow(test_folder)
+
+        test1 = CredentialItem("Credential", 12, False, QColor(*self.config_dict["credential_color"]))
+        test_folder.appendRow(test1)
 
 
 if __name__ == "__main__":

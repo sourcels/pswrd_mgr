@@ -9,6 +9,8 @@ class CredentialWidget(QWidget):
     def __init__(self):
         super(CredentialWidget, self).__init__()
 
+        self.build()
+
     def build(self):
         ...
 
