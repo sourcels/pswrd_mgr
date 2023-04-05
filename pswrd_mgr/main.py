@@ -9,6 +9,7 @@ from credential_widget import CredentialWidget
 from credential_list import CredentialList, CredentialItem
 from messages import ErrorMessage
 from config import Config
+from settings import SettingsWindow
 
 class Main(QMainWindow):
     def __init__(self, parent: QWidget = None) -> None:
@@ -19,11 +20,6 @@ class Main(QMainWindow):
         self.load_creds()
 
     def build(self) -> None:
-        self.setWindowTitle("Credential Manager")
-        self.setWindowIcon(self.style().standardIcon(QStyle.SP_TitleBarMenuButton))
-        size_object = QDesktopWidget().screenGeometry(-1)
-        self.resize(int(size_object.width() / 3), int(size_object.height() / 2))
-
         self.main_widget = QWidget(self)
         self.setCentralWidget(self.main_widget)
 
@@ -33,8 +29,12 @@ class Main(QMainWindow):
         self.selection_layoutV = QVBoxLayout()
         self.main_layoutH.addLayout(self.selection_layoutV)
 
-        self.cred_list = CredentialList(self)
+        self.settings_button = QPushButton()
+        self.settings_button.setText("Settings")
+        self.settings_button.clicked.connect(self.settings_function)
+        self.selection_layoutV.addWidget(self.settings_button)
 
+        self.cred_list = CredentialList(self)
         self.selection_layoutV.addWidget(self.cred_list)
 
         self.quick_action_layout = QHBoxLayout()
@@ -59,11 +59,19 @@ class Main(QMainWindow):
         self.action_widget.setHidden(True)
         self.action_layoutV.addWidget(self.action_widget)
 
+    def settings_function(self):
+        SettingsWindow(self, self.config_dict)
+
     def load_config(self):
         config = Config()
         self.config_dict = config.config_dict
+
+        self.setWindowTitle("Credential Manager")
+        self.setWindowIcon(self.style().standardIcon(QStyle.SP_TitleBarMenuButton))
+        size_object = QDesktopWidget().screenGeometry(-1)
+        self.resize(int(size_object.width() / 3), int(size_object.height() / 2))
         font = self.font()
-        font.setPointSize(10)
+        font.setPointSize(self.config_dict["font_size"])
         QApplication.instance().setFont(font)
 
     def load_creds(self):
