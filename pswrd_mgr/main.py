@@ -31,7 +31,7 @@ class Main(QMainWindow):
 
         self.settings_button = QPushButton()
         self.settings_button.setText("Settings")
-        self.settings_button.clicked.connect(self.settings_function)
+        self.settings_button.clicked.connect(SettingsWindow(self).exec_)
         self.selection_layoutV.addWidget(self.settings_button)
 
         self.cred_list = CredentialList(self)
@@ -58,9 +58,6 @@ class Main(QMainWindow):
         self.action_widget = CredentialWidget()
         self.action_widget.setHidden(True)
         self.action_layoutV.addWidget(self.action_widget)
-
-    def settings_function(self):
-        SettingsWindow(self, self.config_dict)
 
     def load_config(self):
         config = Config()

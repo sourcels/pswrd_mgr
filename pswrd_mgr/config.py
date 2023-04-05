@@ -14,9 +14,9 @@ DEFAULT_CONFIG = {
 class Config:
     def __init__(self):
 
-        self.config_dict = self.load()
+        self.config_dict = self.read_config_function()
 
-    def load(self):
+    def read_config_function(self):
         home_dir = os.path.expanduser('~')
         mgr_dir = os.path.join(home_dir, ".cred_mgr")
         os.makedirs(mgr_dir) if not os.path.exists(mgr_dir) else ...
@@ -30,8 +30,10 @@ class Config:
                 pickle.dump(config_dict, config, protocol = 5)
         except pickle.UnpicklingError or MemoryError or EOFError:
             ErrorMessage(None, "file corrupted", "Can't read file. File would be replaced by new file.")
-            #os.remove(config_file)
             with open(file=config_file, mode="wb") as config:
                 pickle.dump(config_dict, config, protocol = 2)
 
         return config_dict
+
+    def write_config_function(self):
+        ...
