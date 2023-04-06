@@ -50,6 +50,25 @@ class SettingsWindow(QDialog):
         self.window_auto_resolution_layoutH.addStretch()
 
 
+        self.window_resolution_layoutH = QHBoxLayout()
+        self.main_layoutV.addLayout(self.window_resolution_layoutH)
+        self.window_resolution_layoutH.addStretch()
+
+        self.window_resolution_label = QLabel()
+        self.window_resolution_layoutH.addWidget(self.window_resolution_label)
+
+        self.window_resolution_width_input = QSpinBox()
+        self.window_resolution_width_input.setRange(800, 4096)
+        self.window_resolution_width_input.valueChanged.connect(self.input_changed)
+        self.window_resolution_layoutH.addWidget(self.window_resolution_width_input)
+
+        self.window_resolution_height_input = QSpinBox()
+        self.window_resolution_height_input.setRange(600, 2160)
+        self.window_resolution_height_input.valueChanged.connect(self.input_changed)
+        self.window_resolution_layoutH.addWidget(self.window_resolution_height_input)
+        self.window_resolution_layoutH.addStretch()
+
+
         self.font_size_layoutH = QHBoxLayout()
         self.main_layoutV.addLayout(self.font_size_layoutH)
         self.font_size_layoutH.addStretch()
@@ -163,26 +182,34 @@ class SettingsWindow(QDialog):
         self.save_button.setEnabled(True)
 
     def choose_folder_color_function(self):
-        temp_color = QColorDialog.getColor(self.folder_color, self).getRgb()
-        if temp_color != self.folder_color.getRgb():
+        temp_color = QColorDialog.getColor(self.folder_color, self)
+        if temp_color.isValid() and temp_color.getRgb() != self.folder_color.getRgb():
             self.folder_color = temp_color
+            self.folder_color_output.setStyleSheet("background-color: " + self.folder_color.name())
             self.input_changed()
 
     def choose_credential_color_function(self):
-        temp_color = QColorDialog.getColor(self.cred_color, self).getRgb()
-        if temp_color != self.cred_color.getRgb():
+        temp_color = QColorDialog.getColor(self.cred_color, self)
+        if temp_color.isValid() and temp_color.getRgb() != self.cred_color.getRgb():
             self.cred_color = temp_color
+            self.credential_color_output.setStyleSheet("background-color: " + self.cred_color.name())
             self.input_changed()
 
     def save_function(self):
+        self.config_dict["window_fixed_resolution"] = self.window_fixed_resolution_input.isChecked()
+        self.config_dict["window_auto_resolution"] = self.window_auto_resolution_input.isChecked()
+        self.config_dict["window_width"] = self.window_resolution_width_input.value()
+        self.config_dict["window_height"] = self.window_resolution_height_input.value()
         self.config_dict["font_size"] = self.font_size_input.value()
-        self.config_dict["folder_color"] = self.folder_color
-        self.config_dict["credential_color"] = self.cred_color
+        self.config_dict["folder_color"] = self.folder_color.getRgb()
+        self.config_dict["credential_color"] = self.cred_color.getRgb()
         self.config_dict["password_length"] = self.password_length_input.value()
         self.config_dict["only_digits"] = self.only_digits_input.isChecked()
         self.config_dict["include_special_characters"] = self.include_special_characters_input.isChecked()
+
         config = Config()
         config.write_config_function(self.config_dict)
+        
         self.accept()
 
     def cancel_function(self):
@@ -200,8 +227,13 @@ class SettingsWindow(QDialog):
         self.setWindowTitle("Credential Manager Settings")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.main_app_label.setText("|" + "App settings" + "|")
-        self.window_fixed_resolution_label.setText("Fixed resolution")
-        self.window_fixed_resolution_input.setChecked(self.config_dict[""])
+        self.window_fixed_resolution_label.setText("Fixed window resolution")
+        self.window_fixed_resolution_input.setChecked(self.config_dict["window_fixed_resolution"])
+        self.window_auto_resolution_label.setText("Auto window resolution:")
+        self.window_auto_resolution_input.setChecked(self.config_dict["window_auto_resolution"])
+        self.window_resolution_label.setText("Window resolution (width, height)")
+        self.window_resolution_width_input.setValue(self.config_dict["window_width"])
+        self.window_resolution_height_input.setValue(self.config_dict["window_height"])
         self.font_size = self.config_dict["font_size"]
         self.folder_color = QColor(*self.config_dict["folder_color"])
         self.cred_color = QColor(*self.config_dict["credential_color"])

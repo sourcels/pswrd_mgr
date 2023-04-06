@@ -31,7 +31,7 @@ class Config:
                 config_dict = pickle.load(config)
         except FileNotFoundError:
             with open(file=config_file, mode="xb") as config:
-                pickle.dump(config_dict, config, protocol = 5)
+                pickle.dump(config_dict, config, protocol = 2)
         except pickle.UnpicklingError or MemoryError or EOFError:
             ErrorMessage(None, "file corrupted", "Can't read file. File would be replaced by new file.")
             with open(file=config_file, mode="wb") as config:
@@ -40,4 +40,13 @@ class Config:
         return config_dict
 
     def write_config_function(self, dict_to_save):
-        ...
+        home_dir = os.path.expanduser('~')
+        mgr_dir = os.path.join(home_dir, ".cred_mgr")
+        os.makedirs(mgr_dir) if not os.path.exists(mgr_dir) else ...
+        config_file = os.path.join(mgr_dir, "config.dat")
+        try:
+            with open(file=config_file, mode="xb") as config:
+                pickle.dump(dict_to_save, config, protocol = 2)
+        except FileExistsError:
+            with open(file=config_file, mode="wb") as config:
+                pickle.dump(dict_to_save, config, protocol = 2)
