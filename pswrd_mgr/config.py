@@ -3,6 +3,10 @@ from cryptography.fernet import Fernet
 from messages import ErrorMessage
 
 DEFAULT_CONFIG = {
+    "window_fixed_resolution": False,
+    "window_auto_resolution": True,
+    "window_width": 800,
+    "window_height": 600,
     "font_size": 10,
     "folder_color": (255, 0, 0),
     "credential_color": (255, 255, 0),
@@ -35,5 +39,5 @@ class Config:
 
         return config_dict
 
-    def write_config_function(self):
+    def write_config_function(self, dict_to_save):
         ...

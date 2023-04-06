@@ -1,7 +1,7 @@
 import os, sys, shutil, json, pickle
 from typing import Optional, Dict, List
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog, QDialog
 from PyQt5.QtCore import Qt, QDir, QFile, QUrl, QSize
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor, QStandardItemModel, QStandardItem
 
@@ -31,7 +31,7 @@ class Main(QMainWindow):
 
         self.settings_button = QPushButton()
         self.settings_button.setText("Settings")
-        self.settings_button.clicked.connect(SettingsWindow(self).exec_)
+        self.settings_button.clicked.connect(self.exec_settings)
         self.selection_layoutV.addWidget(self.settings_button)
 
         self.cred_list = CredentialList(self)
@@ -58,6 +58,10 @@ class Main(QMainWindow):
         self.action_widget = CredentialWidget()
         self.action_widget.setHidden(True)
         self.action_layoutV.addWidget(self.action_widget)
+
+    def exec_settings(self):
+        if SettingsWindow(self).exec_() == QDialog.Accepted:
+            self.load_config()
 
     def load_config(self):
         config = Config()
