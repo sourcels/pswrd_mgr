@@ -17,7 +17,6 @@ class Main(QMainWindow):
 
         self.build()
         self.load_config()
-        self.load_creds()
 
     def build(self) -> None:
         self.main_widget = QWidget(self)
@@ -30,7 +29,7 @@ class Main(QMainWindow):
         self.main_layoutH.addLayout(self.selection_layoutV)
 
         self.settings_button = QPushButton()
-        self.settings_button.setText("Settings")
+        self.settings_button.setObjectName("settings")
         self.settings_button.clicked.connect(self.exec_settings)
         self.selection_layoutV.addWidget(self.settings_button)
 
@@ -41,23 +40,22 @@ class Main(QMainWindow):
         self.selection_layoutV.addLayout(self.quick_action_layout)
 
         self.create_folder_button = QPushButton()
-        self.create_folder_button.setText("Create Folder")
+        self.create_folder_button.setObjectName("create_f")
         self.quick_action_layout.addWidget(self.create_folder_button)
 
         self.create_cred_button = QPushButton()
-        self.create_cred_button.setText("Create Credential")
+        self.create_cred_button.setObjectName("create_f")
         self.quick_action_layout.addWidget(self.create_cred_button)
 
         self.action_layoutV = QVBoxLayout()
         self.main_layoutH.addLayout(self.action_layoutV)
 
         self.name_bar = QLabel()
-        self.name_bar.setText("Choose credential...")
         self.action_layoutV.addWidget(self.name_bar)
 
-        self.action_widget = CredentialWidget()
-        self.action_widget.setHidden(True)
-        self.action_layoutV.addWidget(self.action_widget)
+        self.credential_widget = CredentialWidget()
+        self.credential_widget.setHidden(True)
+        self.action_layoutV.addWidget(self.credential_widget)
 
     def exec_settings(self):
         if SettingsWindow(self).exec_() == QDialog.Accepted:
@@ -65,21 +63,41 @@ class Main(QMainWindow):
 
     def load_config(self):
         config = Config()
-        self.config_dict = config.config_dict
 
-        self.setWindowTitle("Credential Manager")
+        self.setWindowTitle(config.config_dict["window_title"])
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_TitleBarMenuButton))
-        size_object = QDesktopWidget().screenGeometry(-1)
-        self.resize(int(size_object.width() / 3), int(size_object.height() / 2))
+        if config.config_dict["window_auto_resolution"]:
+            size_object = QDesktopWidget().screenGeometry(-1)
+            width = int(size_object.width() / 3)
+            height = int(size_object.height() / 2)
+        else:
+            width = config.config_dict["window_width"]
+            height = config.config_dict["window_height"]
+
+        if config.config_dict["window_fixed_resolution"]:
+            self.setFixedSize(width, height)
+        else:
+            self.resize(width, height)
+
+        self.settings_button.setText("Settings")
+        self.create_folder_button.setText("Create Folder")
+        self.create_cred_button.setText("Create Credential")
+        self.name_bar.setText("Choose credential" + "...")
+
         font = self.font()
-        font.setPointSize(self.config_dict["font_size"])
+        font.setPointSize(config.config_dict["font_size"])
         QApplication.instance().setFont(font)
 
+        self.folder_color = QColor(*config.config_dict["folder_color"])
+        self.cred_color = QColor(*config.config_dict["credential_color"])
+        self.load_creds()
+
     def load_creds(self):
-        test_folder = CredentialItem("Folder", 12, False, QColor(*self.config_dict["folder_color"]))
+        self.cred_list.delete_all()
+        test_folder = CredentialItem("Folder", 12, False, self.folder_color)
         self.cred_list.canvas.appendRow(test_folder)
 
-        test1 = CredentialItem("Credential", 12, False, QColor(*self.config_dict["credential_color"]))
+        test1 = CredentialItem("Credential", 12, False, self.cred_color)
         test_folder.appendRow(test1)
 
 

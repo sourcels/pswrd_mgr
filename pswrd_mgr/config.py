@@ -3,6 +3,7 @@ from cryptography.fernet import Fernet
 from messages import ErrorMessage
 
 DEFAULT_CONFIG = {
+    "window_title": "Credential Manager",
     "window_fixed_resolution": False,
     "window_auto_resolution": True,
     "window_width": 800,

@@ -38,6 +38,9 @@ class CredentialList(QTreeView):
     def double_clicked_function(self, val):
         print("double clicked", val.data())
 
+    def delete_all(self):
+        self.model_obj.removeRows(0, self.model_obj.rowCount())
+
     def openMenu(self, position):
         indexes = self.selectedIndexes()
         if len(indexes) > 0:
