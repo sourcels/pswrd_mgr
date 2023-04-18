@@ -1,7 +1,7 @@
 import os, sys, shutil, json, pickle
 from typing import Optional, Dict, List
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog, QDialog, QSpinBox, QCheckBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog, QDialog, QSpinBox, QCheckBox, QTabWidget
 from PyQt5.QtCore import Qt, QDir, QFile, QUrl, QSize
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor, QStandardItemModel, QStandardItem
 
@@ -19,13 +19,17 @@ class SettingsWindow(QDialog):
         self.main_layoutV = QVBoxLayout()
         self.setLayout(self.main_layoutV)
 
-        self.main_app_label = QLabel()
-        self.main_app_label.setAlignment(Qt.AlignCenter)
-        self.main_layoutV.addWidget(self.main_app_label)
+        self.tabs_widget = QTabWidget()
+        self.tabs_widget.setTabsClosable(False)
+        self.tabs_widget.setMovable(False)
+        self.main_layoutV.addWidget(self.tabs_widget)
 
+        self.window_settings = QWidget()
+        self.window_settings_main_layoutV = QVBoxLayout()
+        self.window_settings.setLayout(self.window_settings_main_layoutV)
 
         self.window_fixed_resolution_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.window_fixed_resolution_layoutH)
+        self.window_settings_main_layoutV.addLayout(self.window_fixed_resolution_layoutH)
         self.window_fixed_resolution_layoutH.addStretch()
 
         self.window_fixed_resolution_label = QLabel()
@@ -36,9 +40,8 @@ class SettingsWindow(QDialog):
         self.window_fixed_resolution_layoutH.addWidget(self.window_fixed_resolution_input)
         self.window_fixed_resolution_layoutH.addStretch()
 
-
         self.window_auto_resolution_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.window_auto_resolution_layoutH)
+        self.window_settings_main_layoutV.addLayout(self.window_auto_resolution_layoutH)
         self.window_auto_resolution_layoutH.addStretch()
 
         self.window_auto_resolution_label = QLabel()
@@ -49,9 +52,8 @@ class SettingsWindow(QDialog):
         self.window_auto_resolution_layoutH.addWidget(self.window_auto_resolution_input)
         self.window_auto_resolution_layoutH.addStretch()
 
-
         self.window_resolution_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.window_resolution_layoutH)
+        self.window_settings_main_layoutV.addLayout(self.window_resolution_layoutH)
         self.window_resolution_layoutH.addStretch()
 
         self.window_resolution_label = QLabel()
@@ -67,10 +69,16 @@ class SettingsWindow(QDialog):
         self.window_resolution_height_input.valueChanged.connect(self.input_changed)
         self.window_resolution_layoutH.addWidget(self.window_resolution_height_input)
         self.window_resolution_layoutH.addStretch()
+        self.tabs_widget.addTab(self.window_settings, self.style().standardIcon(QStyle.SP_DesktopIcon), "Window")
 
+
+
+        self.cred_settings = QWidget()
+        self.cred_settings_main_layoutV = QVBoxLayout()
+        self.cred_settings.setLayout(self.cred_settings_main_layoutV)
 
         self.font_size_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.font_size_layoutH)
+        self.cred_settings_main_layoutV.addLayout(self.font_size_layoutH)
         self.font_size_layoutH.addStretch()
 
         self.font_size_label = QLabel()
@@ -82,9 +90,8 @@ class SettingsWindow(QDialog):
         self.font_size_layoutH.addWidget(self.font_size_input)
         self.font_size_layoutH.addStretch()
 
-
         self.folder_color_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.folder_color_layoutH)
+        self.cred_settings_main_layoutV.addLayout(self.folder_color_layoutH)
         self.folder_color_layoutH.addStretch()
 
         self.folder_color_label = QLabel()
@@ -100,9 +107,8 @@ class SettingsWindow(QDialog):
         self.folder_color_layoutH.addWidget(self.folder_color_input)
         self.folder_color_layoutH.addStretch()
 
-
         self.credential_color_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.credential_color_layoutH)
+        self.cred_settings_main_layoutV.addLayout(self.credential_color_layoutH)
         self.credential_color_layoutH.addStretch()
 
         self.credential_color_label = QLabel()
@@ -116,15 +122,17 @@ class SettingsWindow(QDialog):
         self.credential_color_input.setObjectName("credcolor")
         self.credential_color_input.clicked.connect(self.choose_credential_color_function)
         self.credential_color_layoutH.addWidget(self.credential_color_input)
-
-        self.random_password_generator_label = QLabel()
-        self.random_password_generator_label.setAlignment(Qt.AlignCenter)
-        self.main_layoutV.addWidget(self.random_password_generator_label)
         self.credential_color_layoutH.addStretch()
+        self.tabs_widget.addTab(self.cred_settings, self.style().standardIcon(QStyle.SP_FileDialogDetailedView), "Credential")
 
+
+
+        self.generator_settings = QWidget()
+        self.generator_settings_main_layoutV = QVBoxLayout()
+        self.generator_settings.setLayout(self.generator_settings_main_layoutV)
 
         self.password_length_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.password_length_layoutH)
+        self.generator_settings_main_layoutV.addLayout(self.password_length_layoutH)
         self.password_length_layoutH.addStretch()
 
         self.password_length_label = QLabel()
@@ -136,9 +144,8 @@ class SettingsWindow(QDialog):
         self.password_length_layoutH.addWidget(self.password_length_input)
         self.password_length_layoutH.addStretch()
 
-
         self.only_digits_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.only_digits_layoutH)
+        self.generator_settings_main_layoutV.addLayout(self.only_digits_layoutH)
         self.only_digits_layoutH.addStretch()
 
         self.only_digits_label = QLabel()
@@ -149,9 +156,8 @@ class SettingsWindow(QDialog):
         self.only_digits_layoutH.addWidget(self.only_digits_input)
         self.only_digits_layoutH.addStretch()
 
-
         self.include_special_characters_layoutH = QHBoxLayout()
-        self.main_layoutV.addLayout(self.include_special_characters_layoutH)
+        self.generator_settings_main_layoutV.addLayout(self.include_special_characters_layoutH)
         self.include_special_characters_layoutH.addStretch()
 
         self.include_special_characters_label = QLabel()
@@ -161,6 +167,8 @@ class SettingsWindow(QDialog):
         self.include_special_characters_input.stateChanged.connect(self.input_changed)
         self.include_special_characters_layoutH.addWidget(self.include_special_characters_input)
         self.include_special_characters_layoutH.addStretch()
+        self.tabs_widget.addTab(self.generator_settings, self.style().standardIcon(QStyle.SP_BrowserReload), "Generator")
+
 
 
         self.action_layoutH = QHBoxLayout()
@@ -208,7 +216,7 @@ class SettingsWindow(QDialog):
         self.config_dict["include_special_characters"] = self.include_special_characters_input.isChecked()
 
         config = Config()
-        config.write_config_function(self.config_dict)
+        config.write_config(self.config_dict)
         
         self.accept()
 
@@ -226,7 +234,6 @@ class SettingsWindow(QDialog):
 
         self.setWindowTitle("Credential Manager Settings")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
-        self.main_app_label.setText("|" + "App settings" + "|")
         self.window_fixed_resolution_label.setText("Fixed window resolution")
         self.window_fixed_resolution_input.setChecked(self.config_dict["window_fixed_resolution"])
         self.window_auto_resolution_label.setText("Auto window resolution:")
@@ -245,7 +252,6 @@ class SettingsWindow(QDialog):
         self.credential_color_label.setText("Credential Color:")
         self.credential_color_input.setText("Choose color...")
         self.credential_color_output.setStyleSheet("background-color: " + self.cred_color.name())
-        self.random_password_generator_label.setText("|" + "Password Generator settings" + "|")
         self.password_length_label.setText("Password Length:")
         self.password_length_input.setValue(self.config_dict["password_length"])
         self.only_digits_label.setText("Include only digits:")

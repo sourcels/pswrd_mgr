@@ -1,11 +1,11 @@
 import os, sys, shutil, json, pickle
 from typing import Optional, Dict, List
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QStyle, QDesktopWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QPushButton, QListWidget, QLabel, QListWidgetItem, QTreeView, QScrollArea, QMenu, QMessageBox, QColorDialog, QDialog, QTabWidget
 from PyQt5.QtCore import Qt, QDir, QFile, QUrl, QSize
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor, QStandardItemModel, QStandardItem
 
-from credential_widget import CredentialWidget
+from credential_tabs import CredentialTabs
 from credential_list import CredentialList, CredentialItem
 from messages import ErrorMessage
 from config import Config
@@ -16,7 +16,6 @@ class Main(QMainWindow):
         super(Main, self).__init__(parent)
 
         self.build()
-        self.load_config()
 
     def build(self) -> None:
         self.main_widget = QWidget(self)
@@ -47,21 +46,15 @@ class Main(QMainWindow):
         self.create_cred_button.setObjectName("create_f")
         self.quick_action_layout.addWidget(self.create_cred_button)
 
-        self.action_layoutV = QVBoxLayout()
-        self.main_layoutH.addLayout(self.action_layoutV)
-
-        self.name_bar = QLabel()
-        self.action_layoutV.addWidget(self.name_bar)
-
-        self.credential_widget = CredentialWidget()
-        self.credential_widget.setHidden(True)
-        self.action_layoutV.addWidget(self.credential_widget)
+        self.cred_tabs = CredentialTabs(self)
+        self.main_layoutH.addWidget(self.cred_tabs)
+        self.load_config(True)
 
     def exec_settings(self):
         if SettingsWindow(self).exec_() == QDialog.Accepted:
             self.load_config()
 
-    def load_config(self):
+    def load_config(self, start_up = False):
         config = Config()
 
         self.setWindowTitle(config.config_dict["window_title"])
@@ -77,28 +70,22 @@ class Main(QMainWindow):
         if config.config_dict["window_fixed_resolution"]:
             self.setFixedSize(width, height)
         else:
+            self.setMinimumSize(0, 0)
+            self.setMaximumSize(16777215, 16777215)
             self.resize(width, height)
+
+        if config.config_dict["show_welcome_tab_on_start"] and start_up:
+            self.cred_tabs.append_welcome_tab()
 
         self.settings_button.setText("Settings")
         self.create_folder_button.setText("Create Folder")
         self.create_cred_button.setText("Create Credential")
-        self.name_bar.setText("Choose credential" + "...")
 
         font = self.font()
         font.setPointSize(config.config_dict["font_size"])
         QApplication.instance().setFont(font)
 
-        self.folder_color = QColor(*config.config_dict["folder_color"])
-        self.cred_color = QColor(*config.config_dict["credential_color"])
-        self.load_creds()
-
-    def load_creds(self):
-        self.cred_list.delete_all()
-        test_folder = CredentialItem("Folder", 12, False, self.folder_color)
-        self.cred_list.canvas.appendRow(test_folder)
-
-        test1 = CredentialItem("Credential", 12, False, self.cred_color)
-        test_folder.appendRow(test1)
+        self.cred_list.load_creds(config)
 
 
 if __name__ == "__main__":

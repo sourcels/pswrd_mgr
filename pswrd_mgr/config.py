@@ -8,6 +8,7 @@ DEFAULT_CONFIG = {
     "window_auto_resolution": True,
     "window_width": 800,
     "window_height": 600,
+    "show_welcome_tab_on_start": True,
     "font_size": 10,
     "folder_color": (255, 0, 0),
     "credential_color": (255, 255, 0),
@@ -19,9 +20,9 @@ DEFAULT_CONFIG = {
 class Config:
     def __init__(self):
 
-        self.config_dict = self.read_config_function()
+        self.config_dict = self.read_config()
 
-    def read_config_function(self):
+    def read_config(self):
         home_dir = os.path.expanduser('~')
         mgr_dir = os.path.join(home_dir, ".cred_mgr")
         os.makedirs(mgr_dir) if not os.path.exists(mgr_dir) else ...
@@ -40,7 +41,7 @@ class Config:
 
         return config_dict
 
-    def write_config_function(self, dict_to_save):
+    def write_config(self, dict_to_save):
         home_dir = os.path.expanduser('~')
         mgr_dir = os.path.join(home_dir, ".cred_mgr")
         os.makedirs(mgr_dir) if not os.path.exists(mgr_dir) else ...
